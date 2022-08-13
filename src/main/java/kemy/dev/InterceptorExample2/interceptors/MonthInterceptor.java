@@ -28,26 +28,36 @@ returns an HTTP OK status
 public class MonthInterceptor implements HandlerInterceptor{
 
     public static List<Month> monthList=new ArrayList<>(Arrays.asList(
+
             new Month(1,"January","Gennaio","Januar"),
             new Month(2,"February","Febbraio","Februar"),
             new Month(3,"March","Marzo","März"),
             new Month(4,"April","Aprile","April "),
             new Month(5,"May","Maggio","Mai "),
             new Month(6,"June","Giugno","Juni ")
+
     ));
+    @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String stringMonthNumber=request.getHeader("monthNumber");
         System.out.println("inizio il prehandle");
-        if (stringMonthNumber==null){
-            return true;//false?
+        //se l'header viene disabilitato o se il campo è vuoto
+        if (stringMonthNumber==null||stringMonthNumber.isEmpty()){
+            System.out.println("monthnumber is null or empty, abilita L'header monthNumber");
+            response.setStatus(400);
+            //return true;
         }
         int monthNumber=Integer.parseInt(stringMonthNumber);
-        Optional<Month> month=monthList.stream().filter(singleMonth ->{
-            return singleMonth.getMonthNumber()==monthNumber;
-        }).findFirst();
-        if (month.isPresent()){
-            request.setAttribute("Month interceptor-month",month.get());
+        Optional<Month> month=monthList.stream().filter(singleMonth -> singleMonth.getMonthNumber()==monthNumber).findAny();
+       if(month.isEmpty()){
+           System.out.println("month is empty");
+            //returns an empty Month with all the string values set to nope
+            request.setAttribute("Month interceptor-month",
+                    new Month(0,"nope","nope","nope"));
         }
+       if(month.isPresent()){
+        System.out.println("month number " + monthNumber + " is present!");
+        request.setAttribute("Month interceptor-month", month.get());}
         return true;
     }
 
